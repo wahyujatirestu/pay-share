@@ -3,7 +3,9 @@ package config
 import (
 	"errors"
 	"os"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
 )
 
@@ -20,10 +22,19 @@ type ApiConfig struct {
 	ApiPort		string
 }
 
+type TokenConfig struct {
+	AppName				string
+	JWTSignatureKey		[]byte
+	JWTSigningMethod	*jwt.SigningMethodHMAC
+	AccessTokenLifetime	time.Duration
+}
+
 type Config struct {
 	DBConfig
 	ApiConfig
+	TokenConfig
 }
+
 
 func (c *Config) ReadConfig() error {
 	_ = godotenv.Load()
@@ -31,13 +42,23 @@ func (c *Config) ReadConfig() error {
 	c.DBConfig = DBConfig{
 		Host:	os.Getenv("DB_HOST"),
 		Port:	os.Getenv("DB_PORT"),
+		Dbname:	os.Getenv("DB_NAME"),
 		Username:	os.Getenv("DB_USER"),
 		Password:	os.Getenv("DB_PASSWORD"),
-		Dbname:	os.Getenv("DB_NAME"),
+		Driver: os.Getenv("DB_DRIVER"),
 	}
 
 	c.ApiConfig = ApiConfig{
 		ApiPort:	os.Getenv("API_PORT"),
+	}
+
+	accessTokenLifetime := time.Duration(1) * time.Hour
+
+	c.TokenConfig = TokenConfig{
+		AppName: "Pay-Share",
+		JWTSignatureKey: []byte(os.Getenv("ACCESS_TOKEN")),
+		JWTSigningMethod: jwt.SigningMethodHS256,
+		AccessTokenLifetime: accessTokenLifetime,
 	}
 
 	if c.Host == "" || c.Port == "" || c.Username == "" || c.Password == "" || c.Dbname == "" {
