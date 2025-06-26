@@ -100,13 +100,13 @@ func (r *customerRepository) GetByEmail(email string) (*model.Customer, error) {
 }
 
 func (r *customerRepository) Update(c *model.Customer) error {
-	res, err := r.db.Exec(`UPDATE customers SET name=$1, email=$2, phone=$3, password=$4, address=$5, updated_at=$6 WHERE id=$7`, c.Name, c.Email, c.Phone, c.Password, c.Address, c.Updated_At, c.ID)
+	result, err := r.db.Exec(`UPDATE customers SET name=$1, email=$2, phone=$3, password=$4, address=$5, updated_at=$6 WHERE id=$7`, c.Name, c.Email, c.Phone, c.Password, c.Address, c.Updated_At, c.ID)
 
 	if err != nil {
 		return err
 	}
 
-	rows, _ := res.RowsAffected()
+	rows, _ := result.RowsAffected()
 	if rows == 0 {
 		return errors.New("no rows Updated")
 	}
@@ -115,12 +115,12 @@ func (r *customerRepository) Update(c *model.Customer) error {
 }
 
 func (r *customerRepository) Delete(id string) error {
-	res, err := r.db.Exec(`DELETE FROM customers WHERE id=$1`, id)
+	result, err := r.db.Exec(`DELETE FROM customers WHERE id=$1`, id)
 	if err != nil {
 		return err
 	} 
 
-	rows, _ := res.RowsAffected()
+	rows, _ := result.RowsAffected()
 	if rows == 0 {
 		return errors.New("no rows deleted")
 	}
