@@ -16,6 +16,7 @@ type UserRepository interface {
 	GetAll(filters map[string]interface{}) ([]*model.User, error)
 	GetById(id string)(*model.User, error)
 	GetByEmail(email string)(*model.User, error)
+	GetEmailUsername(identifier string, password string)(*model.User, error)
 	Update(customer *model.User) error
 	Delete(id string) error
 }
@@ -34,7 +35,7 @@ func (r *userRepository) Create(u *model.User) error {
 	u.Created_At = now
 	u.Updated_At = now
 
-	_, err := r.db.Exec(`INSERT INTO users (id, name , email, phone, password, address, role, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`, u.ID, u.Name, u.Email, u.Phone, u.Password, u.Role, u.Created_At, u.Updated_At)
+	_, err := r.db.Exec(`INSERT INTO users (id, name , email, username, phone, password, address, role, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`, u.ID, u.Name, u.Email, u.Username, u.Phone, u.Password, u.Role, u.Created_At, u.Updated_At)
 	
 	if err != nil {
 		return err
@@ -43,7 +44,7 @@ func (r *userRepository) Create(u *model.User) error {
 }
 
 func (r *userRepository) GetAll(filters map[string]interface{}) ([]*model.User, error) {
-	query := `SELECT id, name, email, phone, password, address, role,  created_at, updated_at FROM users`
+	query := `SELECT id, name, email, username, phone, password, address, role,  created_at, updated_at FROM users`
 	var conditions []string
 	var args []interface{}
 	i := 1
@@ -69,7 +70,7 @@ func (r *userRepository) GetAll(filters map[string]interface{}) ([]*model.User, 
 	var users []*model.User
 	for rows.Next(){
 		var u model.User
-		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.Phone, &u.Password, &u.Address, &u.Role, &u.Created_At, &u.Updated_At); err != nil {
+		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.Username, &u.Phone, &u.Password, &u.Address, &u.Role, &u.Created_At, &u.Updated_At); err != nil {
 			return nil, err
 		}
 		users = append(users, &u)
@@ -79,10 +80,10 @@ func (r *userRepository) GetAll(filters map[string]interface{}) ([]*model.User, 
 }
 
 func (r *userRepository) GetById(id string) (*model.User, error) {
-	row := r.db.QueryRow(`SELECT id, name, email, phone, password, address, role, created_at, updated_at FROM users WHERE id = $1`, id)
+	row := r.db.QueryRow(`SELECT id, name, email, username, phone, password, address, role, created_at, updated_at FROM users WHERE id = $1`, id)
 
 	var u model.User
-	if err := row.Scan(&u.ID, &u.Name, &u.Email, &u.Phone, &u.Password, &u.Address, &u.Role, &u.Created_At, &u.Updated_At); err != nil {
+	if err := row.Scan(&u.ID, &u.Name, &u.Email, &u.Username, &u.Phone, &u.Password, &u.Address, &u.Role, &u.Created_At, &u.Updated_At); err != nil {
 		return  nil, err
 	}
 
@@ -90,17 +91,26 @@ func (r *userRepository) GetById(id string) (*model.User, error) {
 }
 
 func (r *userRepository) GetByEmail(email string) (*model.User, error) {
-	row := r.db.QueryRow(`SELECT id, name, email, phone, password, address, role, created_at, updated_at FROM users WHERE email = $1`, email)
+	row := r.db.QueryRow(`SELECT id, name, email, username, phone, password, address, role, created_at, updated_at FROM users WHERE email = $1`, email)
 
 	var u model.User
-	if err := row.Scan(&u.ID, &u.Name, &u.Email, &u.Phone, &u.Password, &u.Address, &u.Role, &u.Created_At, &u.Updated_At); err != nil {
+	if err := row.Scan(&u.ID, &u.Name, &u.Email, &u.Username, &u.Phone, &u.Password, &u.Address, &u.Role, &u.Created_At, &u.Updated_At); err != nil {
 		return nil, err
 	}
 	return &u, nil
 }
 
+func (r *userRepository) GetEmailUsername(identifier string, password string) (*model.User, error) {
+	var u model.User
+	if err := r.db.QueryRow(`SELECT id, email, role FROM users WHERE email = $1 OR username = $1 AND password = $2`, identifier, password).Scan(&u.ID, &u.Email, &u.Role); err != nil {
+		return nil, err
+	}
+	return &u, nil
+
+}
+
 func (r *userRepository) Update(u *model.User) error {
-	result, err := r.db.Exec(`UPDATE users SET name=$1, email=$2, phone=$3, password=$4, role=$5 address=$6, updated_at=$7 WHERE id=$8`, u.Name, u.Email, u.Phone, u.Password, u.Address, u.Updated_At, u.ID)
+	result, err := r.db.Exec(`UPDATE users SET name=$1, email=$2, username=$3 phone=$4, password=$5, role=$6 address=$7, updated_at=$8 WHERE id=$9`, u.Name, u.Email, u.Username, u.Phone, u.Password, u.Address, u.Updated_At, u.ID)
 
 	if err != nil {
 		return err

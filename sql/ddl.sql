@@ -26,11 +26,12 @@ BEFORE UPDATE ON products
 FOR EACH ROW
 EXECUTE PROCEDURE update_updated_at_column();
 
--- ✅ Table users (gabungan customers & employees)
+-- Table users 
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
+    username VARCHAR(50) UNIQUE NOT NULL,
     phone VARCHAR(20),
     password TEXT NOT NULL,
     address TEXT,
@@ -44,7 +45,7 @@ BEFORE UPDATE ON users
 FOR EACH ROW
 EXECUTE PROCEDURE update_updated_at_column();
 
--- ✅ Table transactions (relasi ke users, bukan lagi customers/employees)
+-- Table transactions 
 CREATE TABLE transactions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     bill_date TIMESTAMP,
@@ -78,3 +79,12 @@ CREATE TRIGGER update_transaction_details_updated_at
 BEFORE UPDATE ON transaction_details
 FOR EACH ROW
 EXECUTE PROCEDURE update_updated_at_column();
+
+
+CREATE TABLE refresh_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    token TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMP NOT NULL
+);
