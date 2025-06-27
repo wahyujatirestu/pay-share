@@ -13,6 +13,8 @@ import (
 type JWTService interface {
 	CreateToken(user model.User)(string, error)
 	VerifyToken(tokenString string)(modeljwt.JWTPayloadClaim, error)
+	CreateRefreshToken(user model.User)(string, error)
+	VerifyRefreshToken(tokenString string)(modeljwt.JWTPayloadClaim, error)
 }
 
 type jwtService struct {
@@ -57,4 +59,44 @@ func (j *jwtService) VerifyToken(ts string) (modeljwt.JWTPayloadClaim, error) {
 	}
 
 	return *claim, nil
+}
+
+func (j *jwtService) CreateRefreshToken(user model.User) (string, error) {
+	tokenKey := j.cfg.JWTSignatureKey
+	refreshTokenLifetime := time.Hour * 24 * 7
+
+	claim := modeljwt.JWTPayloadClaim{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer: j.cfg.AppName,
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(refreshTokenLifetime)),
+		},
+		UserId: user.ID,
+		Role: user.Role,
+	}
+
+	jwtNewClaim := jwt.NewWithClaims(j.cfg.JWTSigningMethod, claim)
+	token, err := jwtNewClaim.SignedString(tokenKey)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+
+}
+
+func (j *jwtService) VerifyRefreshToken(ts string) (modeljwt.JWTPayloadClaim, error) {
+	tokenParse, err := jwt.ParseWithClaims(ts, modeljwt.JWTPayloadClaim{}, func(t *jwt.Token) (interface{}, error) {
+		return j.cfg.JWTSignatureKey, nil
+	})
+
+	if err != nil {
+		return modeljwt.JWTPayloadClaim{}, err
+	}
+
+	claim, ok := tokenParse.Claims.(*modeljwt.JWTPayloadClaim)
+	if !ok {
+		return modeljwt.JWTPayloadClaim{}, errors.New("Invalid refresh token")
+	}
+
+	return  *claim, nil
 }
