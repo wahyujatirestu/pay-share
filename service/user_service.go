@@ -11,24 +11,24 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-type CustomerService interface {
-	Register(customer *model.Customer, confirmPassword string) error
-	Login(email, password string) (*model.Customer, error)
-	GetCustomerById(id string) (*model.Customer, error)
-	GetAllCustomer(filters map[string]interface{})([]*model.Customer, error)
-	Update(customer *model.Customer) error
+type UserService interface {
+	Register(user *model.User, confirmPassword string) error
+	Login(email, password string) (*model.User, error)
+	GetCustomerById(id string) (*model.User, error)
+	GetAllCustomer(filters map[string]interface{})([]*model.User, error)
+	Update(customer *model.User) error
 	Delete(id string) error
 }
 
-type customerService struct {
-	repo repository.CustomerRepository
+type userService struct {
+	repo repository.UserRepository
 }
 
-func NewCustomerService(repo repository.CustomerRepository) CustomerService {
-	return &customerService{repo: repo}
+func NewUserService(repo repository.UserRepository) UserService {
+	return &userService{repo: repo}
 }
 
-func generatePasswordHash1(password string) (string, error) {
+func generatePasswordHash(password string) (string, error) {
 	salt := make([]byte, 16)
 	_, err := rand.Read(salt)
 	if err != nil {
@@ -46,7 +46,7 @@ func generatePasswordHash1(password string) (string, error) {
 
 }
 
-func verifyPasswordHash1(encodedHash, password string) (bool, error) {
+func verifyPasswordHash(encodedHash, password string) (bool, error) {
 	parts := strings.Split(encodedHash, "$")
 	if len(parts) != 4 {
 		return false, errors.New("invalid password hash")
@@ -67,12 +67,12 @@ func verifyPasswordHash1(encodedHash, password string) (bool, error) {
 	return string(computedHash) == string(hash), nil
 }
 
-func (s *customerService) Register(c *model.Customer, confirmPassword string) error {
-	if c.Password != confirmPassword {
+func (s *userService) Register(u *model.User, confirmPassword string) error {
+	if u.Password != confirmPassword {
 		return errors.New("password and confirm password not match")
 	}
 
-	existing, err := s.repo.GetByEmail(c.Email)
+	existing, err := s.repo.GetByEmail(u.Email)
 	if err != nil {
 		return err
 	}
@@ -81,26 +81,26 @@ func (s *customerService) Register(c *model.Customer, confirmPassword string) er
 		return errors.New("email already exist")
 	}
 
-	hash, err := generatePasswordHash1(c.Password)
+	hash, err := generatePasswordHash(u.Password)
 	if err != nil {
 		return err
 	}
-	c.Password = hash
+	u.Password = hash
 
-	return s.repo.Create(c)
+	return s.repo.Create(u)
 }
 
-func (s *customerService) Login(email, password string) (*model.Customer, error) {
-	c, err := s.repo.GetByEmail(email)
+func (s *userService) Login(email, password string) (*model.User, error) {
+	u, err := s.repo.GetByEmail(email)
 	if err != nil {
 		return nil, err
 	}
 
-	if c == nil {
+	if u == nil {
 		return nil, errors.New("email not found")
 	}
 
-	valid, err := verifyPasswordHash1(c.Password, password)
+	valid, err := verifyPasswordHash(u.Password, password)
 	if err != nil {
 		return nil, err
 	}
@@ -108,28 +108,28 @@ func (s *customerService) Login(email, password string) (*model.Customer, error)
 		return nil, errors.New("invalid password")
 	}
 
-	return  c, nil
+	return  u, nil
 }
 
-func (s *customerService) GetCustomerById(id string) (*model.Customer, error) {
+func (s *userService) GetCustomerById(id string) (*model.User, error) {
 	return s.repo.GetById(id)
 }
 
-func (s *customerService) GetAllCustomer(filters map[string]interface{}) ([]*model.Customer, error) {
+func (s *userService) GetAllCustomer(filters map[string]interface{}) ([]*model.User, error) {
 	return s.repo.GetAll(filters)
 }
 
-func (s *customerService) Update(c *model.Customer) error {
-	if c.Password != "" {
-		hash, err := generatePasswordHash1(c.Password)
+func (s *userService) Update(u *model.User) error {
+	if u.Password != "" {
+		hash, err := generatePasswordHash(u.Password)
 		if err != nil {
 			return err
 		}
-		c.Password = hash
+		u.Password = hash
 	}
-	return s.repo.Update(c)
+	return s.repo.Update(u)
 }
 
-func (s *customerService) Delete(id string) error {
+func (s *userService) Delete(id string) error {
 	return s.repo.Delete(id)
 }
