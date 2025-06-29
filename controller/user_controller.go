@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/wahyujatirestu/payshare/model"
@@ -51,6 +53,15 @@ func (c *UserController) Register(ctx *gin.Context)  {
 }
 
 func (c *UserController) GetAllUser(ctx *gin.Context)  {
+	loggedInUser, exist := ctx.Get("user")
+	if !exist {
+		ctx.JSON(401, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	currentUser := loggedInUser.(model.User)
+
+
 	filters := make(map[string]interface{})
 
 	if name := ctx.Query("name"); name != "" {
@@ -67,6 +78,19 @@ func (c *UserController) GetAllUser(ctx *gin.Context)  {
 
 	if username := ctx.Query("username"); username != "" {
 		filters["username"] = username
+	}
+
+
+	switch strings.ToLower(currentUser.Role){
+		case "customer":
+			filters["role"] = "customer"
+		case "employee":
+			if role := ctx.Query("role"); role != "" {
+				filters["role"] = role
+			}
+		default:
+			ctx.JSON(403, gin.H{"error": "Forbidden"})
+			return
 	}
 
 	user, err := c.userService.GetAllUser(filters)

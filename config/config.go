@@ -52,7 +52,7 @@ func (c *Config) ReadConfig() error {
 		ApiPort:	os.Getenv("API_PORT"),
 	}
 
-	accessTokenLifetime := time.Duration(1) * time.Hour
+	accessTokenLifetime := time.Duration(15) * time.Minute
 
 	c.TokenConfig = TokenConfig{
 		AppName: "Pay-Share",

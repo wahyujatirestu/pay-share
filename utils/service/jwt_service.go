@@ -32,7 +32,7 @@ func (j *jwtService) CreateToken(user model.User) (string, error) {
 			Issuer: j.cfg.AppName,
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.cfg.AccessTokenLifetime.Abs())),
 		},
-		UserId: user.ID,
+		UserId: user.ID.String(),
 		Role: user.Role,
 	}
 
@@ -45,7 +45,7 @@ func (j *jwtService) CreateToken(user model.User) (string, error) {
 }
 
 func (j *jwtService) VerifyToken(ts string) (modeljwt.JWTPayloadClaim, error) {
-	tokenParse, err := jwt.ParseWithClaims(ts, modeljwt.JWTPayloadClaim{}, func(t *jwt.Token) (interface{}, error) {
+	tokenParse, err := jwt.ParseWithClaims(ts, &modeljwt.JWTPayloadClaim{}, func(t *jwt.Token) (interface{}, error) {
 		return j.cfg.JWTSignatureKey, nil
 	})
 
@@ -70,7 +70,7 @@ func (j *jwtService) CreateRefreshToken(user model.User) (string, error) {
 			Issuer: j.cfg.AppName,
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(refreshTokenLifetime)),
 		},
-		UserId: user.ID,
+		UserId: user.ID.String(),
 		Role: user.Role,
 	}
 
@@ -85,7 +85,7 @@ func (j *jwtService) CreateRefreshToken(user model.User) (string, error) {
 }
 
 func (j *jwtService) VerifyRefreshToken(ts string) (modeljwt.JWTPayloadClaim, error) {
-	tokenParse, err := jwt.ParseWithClaims(ts, modeljwt.JWTPayloadClaim{}, func(t *jwt.Token) (interface{}, error) {
+	tokenParse, err := jwt.ParseWithClaims(ts, &modeljwt.JWTPayloadClaim{}, func(t *jwt.Token) (interface{}, error) {
 		return j.cfg.JWTSignatureKey, nil
 	})
 
