@@ -20,6 +20,7 @@ import (
 type Server struct {
 	UserService      service.UserService
 	AuthService      service.AuthenticationService
+	ProductService   service.ProductService
 	JWTService       utilsservice.JWTService
 	RefreshTokenRepo repo.RefreshTokenRepository
 	UserRepo         repository.UserRepository
@@ -44,10 +45,12 @@ func NewServer() *Server {
 
 	userRepo := repository.NewUserRepository(db)
 	refreshTokenRepo := repo.NewRefreshTokenRepository(db)
+	productRepo := repository.NewProductRepository(db)
 
 	userService := service.NewUserService(userRepo)
 	jwtService := utilsservice.NewJWTService(cfg.TokenConfig)
 	authService := service.NewAuthenticationService(userService, jwtService, refreshTokenRepo)
+	productService := service.NewProductService(productRepo)
 
 	engine := gin.Default()
 	host := fmt.Sprintf(":%s", cfg.ApiPort)
@@ -55,6 +58,7 @@ func NewServer() *Server {
 	return &Server{
 		UserService:      userService,
 		AuthService:      authService,
+		ProductService:   productService,
 		JWTService:       jwtService,
 		RefreshTokenRepo: refreshTokenRepo,
 		UserRepo:         userRepo,
@@ -69,9 +73,11 @@ func (s *Server) SetupRoutes() {
 
 	userController := controller.NewUserController(s.UserService)
 	authController := controller.NewAuthController(s.AuthService)
+	productController := controller.NewProductController(s.ProductService)
 
 	routes.AuthRoute(apiV1, authController, userController)
 	routes.UserRoute(apiV1, userController, s.JWTService)
+	routes.ProductRoute(apiV1, productController, s.JWTService)
 }
 
 func (s *Server) Run() {
