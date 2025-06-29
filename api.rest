@@ -46,3 +46,31 @@ Content-Type: application/json
     "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJQYXktU2hhcmUiLCJleHAiOjE3NTE3NzEyODksInVzZXJJZCI6IjJkMjUxMzhiLTNkYzItNDEyNy05NDAxLTJiMTgyYzhjNDliMiIsInJvbGUiOiJlbXBsb3llZSJ9.7b6FZFz_H4j0FWwRJLQpPX7gjKOGx10HqhjOaOvKsQg"
 }
 
+
+###
+POST http://localhost:8080/api/v1/product/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJQYXktU2hhcmUiLCJleHAiOjE3NTExOTEzMjMsInVzZXJJZCI6IjJkMjUxMzhiLTNkYzItNDEyNy05NDAxLTJiMTgyYzhjNDliMiIsInJvbGUiOiJlbXBsb3llZSJ9.zrBrydyPrD1AShrzje2aui1mP87YRa-jiqF2VojdfRk
+Content-Type: application/json
+
+{
+    "name": "Product 1",
+    "description": "Product 1 description",
+    "price": 1000,
+    "unit": "kg"
+}
+
+###
+GET http://localhost:8080/api/v1/product/1
+
+###
+PUT http://localhost:8080/api/v1/product/314da5a1-4fe6-440b-a531-6adc9d65ec59
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJQYXktU2hhcmUiLCJleHAiOjE3NTExOTEzMjMsInVzZXJJZCI6IjJkMjUxMzhiLTNkYzItNDEyNy05NDAxLTJiMTgyYzhjNDliMiIsInJvbGUiOiJlbXBsb3llZSJ9.zrBrydyPrD1AShrzje2aui1mP87YRa-jiqF2VojdfRk
+Content-Type: application/json
+
+{
+    "name": "Semangka",
+    "description": "Product 1 description",
+    "price": 9000,
+    "unit": "kg"
+}
+
