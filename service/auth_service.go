@@ -8,34 +8,34 @@ import (
 	"github.com/wahyujatirestu/payshare/model"
 	utilsmodel "github.com/wahyujatirestu/payshare/utils/model"
 	"github.com/wahyujatirestu/payshare/utils/security"
-	"github.com/wahyujatirestu/payshare/utils/service"
+	utils "github.com/wahyujatirestu/payshare/utils/service"
 	"github.com/wahyujatirestu/payshare/utils/repo"
 )
 
 type AuthenticationService interface {
-	Login(email string, password string)(string, string, error) 
+	Login(identifier string, password string)(string, string, error) 
 	RefreshToken(refreshToken string) (string, error)
 	Logout(refreshToken string) error
 }
 
 type authenticationService struct {
 	userService UserService
-	jwtService service.JWTService
+	jwtService utils.JWTService
 	rtrepo	repository.RefreshTokenRepository
 }
 
-func NewAuthenticationService(userService userService, jwtService service.JWTService, rtrepo repository.RefreshTokenRepository) AuthenticationService {
-	return &authenticationService{userService: &userService, jwtService: jwtService, rtrepo: rtrepo}
+func NewAuthenticationService(userService UserService, jwtService utils.JWTService, rtrepo repository.RefreshTokenRepository) AuthenticationService {
+	return &authenticationService{userService: userService, jwtService: jwtService, rtrepo: rtrepo}
 }
 
 func (a *authenticationService) Login(identifier string, password string) (string, string, error) {
-	user, err := a.userService.GetEmailUsername(identifier, password)
+	user, err := a.userService.GetEmailUsername(identifier)
 	if err != nil {
 		return "", "", err
 	}
 
 	if user == nil {
-		return "", "", errors.New("Email not found")
+		return "", "", errors.New("user not found")
 	}
 
 	valid, err := security.VerifyPasswordHash(user.Password, password)
@@ -44,17 +44,17 @@ func (a *authenticationService) Login(identifier string, password string) (strin
 	}
 
 	if !valid {
-		return "", "", errors.New("Invalid Password")
+		return "", "", errors.New("invalid password")
 	}
 
 	accessToken, err := a.jwtService.CreateToken(*user)
 	if err != nil {
-		return "", "", nil
+		return "", "", err
 	}
 
 	refreshToken, err := a.jwtService.CreateRefreshToken(*user)
 	if err != nil {
-		return  "", "", nil
+		return "", "", err
 	}
 
 	rt := utilsmodel.RefreshToken{
@@ -62,7 +62,7 @@ func (a *authenticationService) Login(identifier string, password string) (strin
 		UserId: user.ID,
 		Token: refreshToken,
 		Created_At: time.Now(),
-		Expires_At: time.Now().Add(time.Hour * 24 * 7),
+		Expires_At: time.Now().Add(7 * 24 * time.Hour),
 	}
 
 	err = a.rtrepo.Save(rt)
@@ -72,6 +72,7 @@ func (a *authenticationService) Login(identifier string, password string) (strin
 
 	return accessToken, refreshToken, nil
 }
+
 
 
 func (a *authenticationService) RefreshToken(rt string) (string, error) {
@@ -91,9 +92,14 @@ func (a *authenticationService) RefreshToken(rt string) (string, error) {
 		return "", errors.New("Refresh token expired")
 	}
 
+	userId, err := uuid.Parse(string(claim.UserId))
+	if err != nil {
+		return "", errors.New("Invalid user ID in token")
+	}
+
 	// generate new token
 	user := model.User{
-		ID: claim.UserId,
+		ID: userId,
 		Role: claim.Role,
 	}
 

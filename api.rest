@@ -1,0 +1,48 @@
+POST http://localhost:8080/api/v1/auth/register
+Content-Type: application/json
+
+{
+    "name": "John Chena",
+    "username": "customer",
+    "email": "john.chena@example.com",
+    "phone": "08954479582",
+    "password": "password123",
+    "confirmPassword": "password123",
+    "address": "Serang",
+    "role": "customer"
+}
+
+###
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+    "identifier": "employee",
+    "password": "password123"
+}
+
+###
+GET http://localhost:8080/api/v1/user
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJQYXktU2hhcmUiLCJleHAiOjE3NTExNjkxNjAsInVzZXJJZCI6IjJkMjUxMzhiLTNkYzItNDEyNy05NDAxLTJiMTgyYzhjNDliMiIsInJvbGUiOiJlbXBsb3llZSJ9.DIJkTlkMfsoJWJZaoPwExlSj3LFyF3svY0FDMR0lmv0
+
+###
+GET http://localhost:8080/api/v1/user/129c3c57-ce14-4bab-ae11-c2721703890c
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJQYXktU2hhcmUiLCJleHAiOjE3NTExNjkxNjAsInVzZXJJZCI6IjJkMjUxMzhiLTNkYzItNDEyNy05NDAxLTJiMTgyYzhjNDliMiIsInJvbGUiOiJlbXBsb3llZSJ9.DIJkTlkMfsoJWJZaoPwExlSj3LFyF3svY0FDMR0lmv0
+
+###
+POST http://localhost:8080/api/v1/auth/refresh
+Content-Type: application/json
+
+{
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJQYXktU2hhcmUiLCJleHAiOjE3NTE3NzI5NDgsInVzZXJJZCI6IjEyOWMzYzU3LWNlMTQtNGJhYi1hZTExLWMyNzIxNzAzODkwYyIsInJvbGUiOiJjdXN0b21lciJ9.KhHwc3kzXbxgMT4jy5fJjJ8WXeySVnnLLYVagwjig_0"
+}
+
+###
+POST http://localhost:8080/api/v1/auth/logout
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJQYXktU2hhcmUiLCJleHAiOjE3NTExNjg1MzksInVzZXJJZCI6IjJkMjUxMzhiLTNkYzItNDEyNy05NDAxLTJiMTgyYzhjNDliMiIsInJvbGUiOiJlbXBsb3llZSJ9.j0e7iqtBUfTiZr3lOLVRlsycSO2Qg9BvFi8l29d21o4
+Content-Type: application/json
+
+{
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJQYXktU2hhcmUiLCJleHAiOjE3NTE3NzEyODksInVzZXJJZCI6IjJkMjUxMzhiLTNkYzItNDEyNy05NDAxLTJiMTgyYzhjNDliMiIsInJvbGUiOiJlbXBsb3llZSJ9.7b6FZFz_H4j0FWwRJLQpPX7gjKOGx10HqhjOaOvKsQg"
+}
+

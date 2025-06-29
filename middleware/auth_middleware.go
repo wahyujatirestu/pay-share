@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/wahyujatirestu/payshare/model"
 	"github.com/wahyujatirestu/payshare/utils/service"
 )
@@ -41,8 +42,14 @@ func (a *authMiddleware) RequireToken(roles ...string) gin.HandlerFunc {
 			return 
 		}
 
+		userId, err := uuid.Parse(tokenClaim.UserId)
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			return 
+		}
+
 		ctx.Set("user", model.User{
-			ID: tokenClaim.UserId,
+			ID: userId,
 			Role: tokenClaim.Role,
 		})
 		validRole := false
