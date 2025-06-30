@@ -55,6 +55,11 @@ CREATE TABLE transactions (
     employee_id UUID REFERENCES users(id),
     total_amount NUMERIC(12,2) DEFAULT 0,
     payment_status VARCHAR(50) DEFAULT 'pending',
+    invoice_number VARCHAR(100) UNIQUE,
+    payment_method VARCHAR(50),
+    payment_url TEXT,
+    status VARCHAR(50) DEFAULT 'created',
+    notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -69,8 +74,12 @@ CREATE TABLE transaction_details (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     transaction_id UUID REFERENCES transactions(id),
     product_id UUID REFERENCES products(id),
-    product_price INT NOT NULL,
+    product_price NUMERIC(12,2) NOT NULL,
     qty INT NOT NULL,
+    discount_amount NUMERIC(12,2) DEFAULT 0,
+    subtotal NUMERIC(12,2) DEFAULT 0,
+    status VARCHAR(50) DEFAULT 'pending',
+    notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
