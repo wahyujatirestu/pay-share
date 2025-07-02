@@ -9,10 +9,10 @@ import (
 
 	"github.com/wahyujatirestu/payshare/config"
 	"github.com/wahyujatirestu/payshare/controller"
-	// "github.com/wahyujatirestu/payshare/middleware"
 	"github.com/wahyujatirestu/payshare/repository"
 	"github.com/wahyujatirestu/payshare/routes"
 	service "github.com/wahyujatirestu/payshare/service"
+	payment "github.com/wahyujatirestu/payshare/payment/service"
 	repo "github.com/wahyujatirestu/payshare/utils/repo"
 	utilsservice "github.com/wahyujatirestu/payshare/utils/service"
 )
@@ -21,7 +21,9 @@ type Server struct {
 	UserService      service.UserService
 	AuthService      service.AuthenticationService
 	ProductService   service.ProductService
+	TsService		 service.TransactionService
 	JWTService       utilsservice.JWTService
+	PaymentService   payment.MidtransService
 	RefreshTokenRepo repo.RefreshTokenRepository
 	UserRepo         repository.UserRepository
 	DB               *sql.DB
@@ -46,11 +48,15 @@ func NewServer() *Server {
 	userRepo := repository.NewUserRepository(db)
 	refreshTokenRepo := repo.NewRefreshTokenRepository(db)
 	productRepo := repository.NewProductRepository(db)
+	tsRepo := repository.NewTransactionRepository(db)
+	tdRepo := repository.NewTransactionDetailsRepository(db)
 
+	midtransService := payment.NewMidtransService()
 	userService := service.NewUserService(userRepo)
 	jwtService := utilsservice.NewJWTService(cfg.TokenConfig)
 	authService := service.NewAuthenticationService(userService, jwtService, refreshTokenRepo)
 	productService := service.NewProductService(productRepo)
+	tsService := service.NewTransactionService(tsRepo, tdRepo, userRepo, midtransService)
 
 	engine := gin.Default()
 	host := fmt.Sprintf(":%s", cfg.ApiPort)
@@ -59,6 +65,7 @@ func NewServer() *Server {
 		UserService:      userService,
 		AuthService:      authService,
 		ProductService:   productService,
+		TsService:		  tsService,
 		JWTService:       jwtService,
 		RefreshTokenRepo: refreshTokenRepo,
 		UserRepo:         userRepo,
@@ -74,10 +81,12 @@ func (s *Server) SetupRoutes() {
 	userController := controller.NewUserController(s.UserService)
 	authController := controller.NewAuthController(s.AuthService)
 	productController := controller.NewProductController(s.ProductService)
+	tsController := controller.NewTransactionsController(s.TsService)
 
 	routes.AuthRoute(apiV1, authController, userController)
 	routes.UserRoute(apiV1, userController, s.JWTService)
 	routes.ProductRoute(apiV1, productController, s.JWTService)
+	routes.TransactionRoute(apiV1, tsController, s.JWTService)
 }
 
 func (s *Server) Run() {

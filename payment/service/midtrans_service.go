@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -33,6 +34,10 @@ func (m *midtransService) Pay(payload *model.MidtransRequest) (*model.MidtransRe
 	}
 
 	encodedKey := base64.StdEncoding.EncodeToString([]byte(serverKey))
+
+	payloadJSON, _ := json.MarshalIndent(payload, "", "  ")
+    fmt.Println("🔍 Midtrans Request Payload:")
+    fmt.Println(string(payloadJSON))
 
 	res, err := m.Client.R().SetHeader("Authorization", "Basic " + encodedKey).SetHeader("Content-Type", "application/json").SetBody(payload).Post(m.Url)
 	if err != nil {

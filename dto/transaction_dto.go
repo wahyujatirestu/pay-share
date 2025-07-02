@@ -12,7 +12,6 @@ type TransactionCreateRequest struct {
 		DiscountAmount float64 `json:"discountAmount"`
 		Notes          string  `json:"notes"`
 	} `json:"details" binding:"required,min=1"`
-	PaymentType    string                 `json:"payment_type" binding:"required"`
 	PaymentDetails map[string]interface{} `json:"payment_details"`
 }
 
@@ -37,4 +36,8 @@ type TransactionResponse struct {
 	Status        string                      `json:"status"`
 	Notes         string                      `json:"notes,omitempty"`
 	Details       []TransactionDetailResponse `json:"details"`
+}
+
+type MidtransReq struct {
+	
 }

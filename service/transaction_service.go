@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -9,15 +10,17 @@ import (
 	payMod "github.com/wahyujatirestu/payshare/payment/model"
 	"github.com/wahyujatirestu/payshare/payment/service"
 	"github.com/wahyujatirestu/payshare/repository"
+	"github.com/wahyujatirestu/payshare/utils"
 )
 
 type TransactionService interface {
-	Create(transaction *model.Transactions, details []*model.TransactionDetails, paymentType string, paymentDetails interface{}) (*payMod.MidtransResponse, error)
+	Create(transaction *model.Transactions, details []*model.TransactionDetails) (*payMod.MidtransResponse, error)
 	GetById(id string)(*model.Transactions, error)
 	GetAll(filters map[string]interface{})([]*model.Transactions, error)
 	GetDetails(transactionId string)([]*model.TransactionDetails, error)
 	Update(transaction *model.Transactions) error
 	Delete(id string) error
+	UpdateStatusFromWebhook(orderID string, status string) error
 }
 
 type transactionService struct {
@@ -36,7 +39,7 @@ func NewTransactionService(tr repository.TransactionRepository, td repository.Tr
 	}
 }
 
-func (s *transactionService) Create(ts *model.Transactions, details []*model.TransactionDetails, paymentType string, paymentDetails interface{}) (*payMod.MidtransResponse, error) {
+func (s *transactionService) Create(ts *model.Transactions, details []*model.TransactionDetails) (*payMod.MidtransResponse, error) {
 	if ts.CustomerId == uuid.Nil {
 		return nil, errors.New("customer id is required")
 	}
@@ -62,6 +65,7 @@ func (s *transactionService) Create(ts *model.Transactions, details []*model.Tra
 	ts.ID = uuid.New()
 	ts.Created_At = now
 	ts.Updated_At = now
+	ts.PaymentMethod = utils.PtrString("midtrans_snap")
 
 	err := s.transactionRepo.Create(ts)
 	if err != nil {
@@ -91,26 +95,14 @@ func (s *transactionService) Create(ts *model.Transactions, details []*model.Tra
 	payload.CustomerDetails.Name = customer.Name
 	payload.CustomerDetails.Email = customer.Email
 	payload.CustomerDetails.Phone = customer.Phone
-	payload.PaymentType = paymentType
 
-	switch paymentType {
-	case "qris":
-		if qris, ok := paymentDetails.(payMod.Qris); ok {
-			payload.Qris = &qris
-		}
-	case "bank_transfer":
-		if bt, ok := paymentDetails.(payMod.BankTransfer); ok {
-			payload.BankTransfer = &bt
-		}
-	}
-
+	
 	chargeRes, err := 	s.midtransService.Pay(payload)
 	if err != nil {
 		return nil, err
 	} 
 
 	ts.PaymentURL = &chargeRes.RedirectUrl
-	ts.PaymentMethod = &paymentType
 	ts.Status = "pending_payment"
 	ts.Updated_At = time.Now()
 
@@ -141,4 +133,16 @@ func (s *transactionService) Update(ts *model.Transactions) error {
 
 func (s *transactionService) GetDetails(transactionId string) ([]*model.TransactionDetails, error) {
 	return s.transactionDetailsRepo.GetByTransactionId(transactionId)
+}
+
+func (s *transactionService) UpdateStatusFromWebhook(orderID string, status string) error {
+	tx, err := s.transactionRepo.GetById(orderID)
+	if err != nil || tx == nil {
+		return fmt.Errorf("Transaction not found: %v", orderID)
+	}
+
+	tx.PaymentStatus = status
+	tx.Updated_At = time.Now()
+
+	return s.transactionRepo.Update(tx)
 }

@@ -3,17 +3,14 @@ package model
 
 type MidtransRequest struct {
 	TransactionDetails struct {
-		OrderId		string		`json:"orderId"`
+		OrderId		string		`json:"order_id"`
 		GrossAmt	*float64	`json:"gross_amount"`
-	}	`json:"transactionDetails"`
+	}	`json:"transaction_details"`
 	CustomerDetails struct {
-		Name 		string		`json:"name"`
+		Name 		string		`json:"first_name"`
 		Email 		string		`json:"email"`
 		Phone		string		`json:"phone"`
-	}	`json:"customerDetails"`
-	PaymentType		string			`json:"paymentType"`
-	Qris			*Qris			`json:"qris,omitempty"`
-	BankTransfer 	*BankTransfer	`json:"bankTransfer,omitempty"`	
+	}	`json:"customer_details"`			
 }
 
 type MidtransResponse struct {

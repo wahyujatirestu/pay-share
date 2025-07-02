@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/wahyujatirestu/payshare/dto"
 	"github.com/wahyujatirestu/payshare/model"
-	payMod "github.com/wahyujatirestu/payshare/payment/model"
+	// payMod "github.com/wahyujatirestu/payshare/payment/model"
 	"github.com/wahyujatirestu/payshare/service"
 )
 
@@ -43,25 +43,8 @@ func (c *TransactionsController) Create(ctx *gin.Context)  {
 		details = append(details, d)
 	}
 
-	var paymentDetails interface{}
-	switch req.PaymentType{
-	case "qris":
-		if acquirer, ok := req.PaymentDetails["acquirer"].(string); ok {
-			paymentDetails = payMod.Qris{Acquirer: acquirer}
-		} else {
-			ctx.JSON(400, gin.H{"error": "Invalid qris payment details"})
-		}
-	case "bank_transfer":
-		if bank, ok := req.PaymentDetails["bank"].(string); ok {
-			paymentDetails = payMod.BankTransfer{Bank: bank}
-		} else {
-			ctx.JSON(400, gin.H{"error": "Invalid bank transfer payment details"})
-		}
-	default:
-		paymentDetails = nil
-	}
 
-	chargeRes, err := c.tsService.Create(&ts, details, req.PaymentType, paymentDetails)
+	chargeRes, err := c.tsService.Create(&ts, details)
 	if err != nil {
 		ctx.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -241,4 +224,21 @@ func (c *TransactionsController) Delete(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(200, gin.H{"message": "Transaction deleted Successfully"})
+}
+
+
+func (c *TransactionsController) WebHook(ctx *gin.Context)  {
+	var body map[string]interface{}
+
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	orderID := body["order_id"].(string)
+	transactionStatus := body["transaction_status"].(string)
+
+	c.tsService.UpdateStatusFromWebhook(orderID, transactionStatus)
+
+	ctx.JSON(200, gin.H{"message": "Webhook received successfully"})
 }

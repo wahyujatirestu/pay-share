@@ -34,7 +34,7 @@ func (r *transactionDetailsRepository) Create(detail *model.TransactionDetails) 
 	detail.CreatedAt = now
 	detail.UpdatedAt = now
 	
-	_, err := r.db.Exec(`INSERT INTO transaction_details (id, bill_date, entry_date, finish_date, customer_id, employee_id, total_amount, payment_status, invoice_number, payment_method, payment_url, status, notes, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`)
+	_, err := r.db.Exec(`INSERT INTO transaction_details (id, transaction_id, product_id, product_price, qty, discount_amount, subtotal, status, notes, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`, detail.ID, detail.TransactionId, detail.ProductId, detail.ProductPrice, detail.Qty, detail.DiscountAmount, detail.Subtotal, detail.Status, detail.Notes, detail.CreatedAt, detail.UpdatedAt)
 	if err != nil {
 		return err
 	}

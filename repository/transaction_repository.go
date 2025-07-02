@@ -33,8 +33,8 @@ func (r *transactionRepository) Create(ts *model.Transactions) error {
 	ts.Created_At = now
 	ts.Updated_At = now
 
-	_, err := r.db.Exec(`INSERT INTO transaction (id, bill_date, entry_date, finish_date, customer_id, employee_id, total_amount, payment_status, invoice_number, payment_method, payment_url, status, notes, created_at, updated_at)
-	VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`)
+	_, err := r.db.Exec(`INSERT INTO transactions (id, bill_date, entry_date, finish_date, customer_id, employee_id, total_amount, payment_status, invoice_number, payment_method, payment_url, status, notes, created_at, updated_at)
+	VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`, ts.ID, ts.BillDate, ts.EntryDate, ts.FinishDate, ts.CustomerId, ts.EmployeeId, ts.TotalAmount, ts.PaymentStatus, ts.InvoiceNumber, ts.PaymentMethod, ts.PaymentURL, ts.Status, ts.Notes, ts.Created_At, ts.Updated_At)
 
 	return err
 }
@@ -123,7 +123,7 @@ func (r *transactionRepository) GetById(id string) (*model.Transactions, error) 
 }
 
 func (r *transactionRepository) Update(ts *model.Transactions) error {
-	res, err := r.db.Exec(`UPDATE transactions SET bill_date=$1, entry_date=$2, finish_date=$3, customer_id=$4, employee_id=$5, total_amount=$6, payment_status=$7, invoice_number=$8, payment_method=$9, payment_url=$10, status=$11, note=$12 WHERE id=$13`, ts.BillDate, ts.EntryDate, ts.FinishDate, ts.CustomerId, ts.EmployeeId, ts.TotalAmount, ts.PaymentStatus, ts.InvoiceNumber, ts.PaymentMethod, ts.PaymentURL, ts.Status, ts.Notes, ts.ID)
+	res, err := r.db.Exec(`UPDATE transactions SET bill_date=$1, entry_date=$2, finish_date=$3, customer_id=$4, employee_id=$5, total_amount=$6, payment_status=$7, invoice_number=$8, payment_method=$9, payment_url=$10, status=$11, notes=$12 WHERE id=$13`, ts.BillDate, ts.EntryDate, ts.FinishDate, ts.CustomerId, ts.EmployeeId, ts.TotalAmount, ts.PaymentStatus, ts.InvoiceNumber, ts.PaymentMethod, ts.PaymentURL, ts.Status, ts.Notes, ts.ID)
 	if err != nil {
 		return err
 	}
