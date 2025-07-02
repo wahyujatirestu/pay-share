@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/wahyujatirestu/payshare/dto"
 	"github.com/wahyujatirestu/payshare/service"
 )
 
@@ -13,17 +14,10 @@ func NewAuthController(authService service.AuthenticationService) *AuthControlle
 	return &AuthController{authService: authService}
 }
 
-type authRequest struct {
-	Identifier	string 	`json:"identifier" binding:"required"`
-	Password	string	`json:"password" binding:"required"`
-}
 
-type refreshToken struct {
-	RefreshToken string `json:"refreshToken" binding:"required"`
-}
 
 func (c *AuthController) Login(ctx *gin.Context) {
-	var req authRequest 
+	var req dto.LoginRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -35,16 +29,18 @@ func (c *AuthController) Login(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(200, gin.H{
-		"accessToken": accessToken,
-		"refreshToken": refreshToken,
-		"message": "Login Successfully",
-	})
+	res := dto.LoginResponse{
+		AccessToken:  	accessToken,
+		RefreshToken: 	refreshToken,
+		Message: 		"Login Successfully",
+	}
+
+	ctx.JSON(200, res)
 }
 
 
 func (c *AuthController) RefreshToken(ctx *gin.Context) {
-	var req refreshToken
+	var req dto.RefreshTokenRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -60,7 +56,7 @@ func (c *AuthController) RefreshToken(ctx *gin.Context) {
 }
 
 func (c *AuthController) Logout(ctx *gin.Context) {
-	var req refreshToken
+	var req dto.RefreshTokenRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(400, gin.H{"error": err.Error()})
 		return

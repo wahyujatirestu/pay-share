@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/wahyujatirestu/payshare/dto"
 	"github.com/wahyujatirestu/payshare/model"
 	"github.com/wahyujatirestu/payshare/service"
 )
@@ -16,13 +17,20 @@ func NewProductController(productService service.ProductService) *ProductControl
 }
 
 func (c *ProductController) Create(ctx *gin.Context) {
-	var product model.Product
-	if err := ctx.ShouldBindJSON(&product); err != nil {
+	var req dto.ProductRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := c.productService.Create(&product); err != nil {
+	product := &model.Product{
+		Name: 			req.Name,
+		Description: 	req.Description,
+		Price: 			req.Price,
+		Unit: 			req.Unit,
+	}
+
+	if err := c.productService.Create(product); err != nil {
 		ctx.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
@@ -76,8 +84,8 @@ func (c *ProductController) GetAll(ctx *gin.Context) {
 
 func (c *ProductController) Update(ctx *gin.Context) {
 	idStr := ctx.Param("id")
-	var product model.Product
-	if err := ctx.ShouldBindJSON(&product); err != nil {
+	var req dto.ProductRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
@@ -88,9 +96,15 @@ func (c *ProductController) Update(ctx *gin.Context) {
 		return
 	}
 
-	product.ID = id
+	product := &model.Product{
+		ID:        		id,
+		Name:      		req.Name,
+		Description: 	req.Description,	
+		Price:     		req.Price,
+		Unit:      		req.Unit,
+	}
 
-	if err := c.productService.Update(&product); err != nil {
+	if err := c.productService.Update(product); err != nil {
 		ctx.JSON(400, gin.H{"error": err.Error()})
 	}
 	ctx.JSON(200, gin.H{"message": "Product updated successfully", "product": product})
