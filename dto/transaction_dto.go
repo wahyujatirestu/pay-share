@@ -2,11 +2,11 @@ package dto
 
 type TransactionCreateRequest struct {
 	Transaction struct {
-		CustomerId string  `json:"customerId" binding:"required,uuid4"`
+		CustomerId string  `json:"customerId" binding:"required,uuid"`
 		Notes      string  `json:"notes"`
 	} `json:"transaction" binding:"required"`
 	Details []struct {
-		ProductId      string  `json:"productId" binding:"required,uuid4"`
+		ProductId      string  `json:"productId" binding:"required,uuid"`
 		ProductPrice   float64 `json:"productPrice" binding:"required,gt=0"`
 		Qty            int     `json:"qty" binding:"required,gt=0"`
 		DiscountAmount float64 `json:"discountAmount"`
